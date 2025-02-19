@@ -1,4 +1,5 @@
 class CardDecorator {
+    
     constructor(card)
     {
         this.card = card;

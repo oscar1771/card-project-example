@@ -1,58 +1,30 @@
 
-const States = {
-    NON_SELECTED: 0,
-    HOVER: 1,
-    SELECTED: 2,
-    MOVING: 3,
-    PLACED: 4
-
-}
-
 
 
 class Card {
-    constructor(id, type)
+    constructor(id, type, description)
     {
-            this.id = id;
-            this.type = type;
-            this.x = x;
-            this.y = y;
-            this.v = 30;
-            this.state = States.NON_SELECTED;
-
+        this.id = id;
+        this.type = type;
+        this.description = this.description;
+        this.x = 0;
+        this.y = 0;
+        
     }
 
-    select()
+    setPosition(x, y)
     {
-        this.state = States.SELECTED;
+        this.x = x;
+        this.y = y;
     }
 
-    hover()
+    getPosition()
     {
-        this.state = States.HOVER;
+        return {x: this.x, y: this.y}
     }
 
-    unselect()
-    {
-        this.state = States.NON_SELECTED;
-    }
-
-    isSelected()
-    {
-        return this.state === States.SELECTED;
-    }
-
-    isHover()
-    {
-        return this.state === States.HOVER;
-    }
-
-    move()
-    {
-        this.x += this.v * deltaTime;
-    }
 }
 
 module.exports = {
     Card
-} 
+}

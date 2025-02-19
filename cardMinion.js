@@ -1,5 +1,7 @@
 
 const {Card} = require('./card');
+
+
 class CardMinion extends Card {
     constructor(id, attack, defense, hp)
     {
