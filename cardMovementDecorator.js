@@ -13,13 +13,21 @@ const States = {
 
 
 
-class CardStateDecorator extends CardDecorator {
+module.exports = class CardMovementDecorator extends CardDecorator {
     constructor(card, deckID)
     {
         super(card);
         this.state = States.NOT_SELECTED;
         this.deckID = deckID;
         this.v = 30;
+
+        //Relativas al MOUSE
+        this.isOnTop = false;
+        this.isClickedOn = false;
+
+        //Colisiones
+        this.collidedBox = null;
+
     }
 
     select()
@@ -52,9 +60,12 @@ class CardStateDecorator extends CardDecorator {
         this.state = States.INACTIVE;
     }
 
-    placed()
+    place(box)
     {
         this.state = States.PLACED;
+        this.card.x = box.x;
+        this.card.y = box.y;
+        
     }
 
     isPlaced()

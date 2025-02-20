@@ -1,6 +1,6 @@
 
 //const {CardMinion} = require('./cardMinion');
-//const {CardMovementDecorator} = require('./cardMovement');
+const {CardMovementDecorator} = require('./cardMovementDecorator');
 //const {Grid} = require('./grid');
 
 const Actions = {
@@ -20,71 +20,69 @@ const Decks = {
 
 
 module.exports = class PrepareEventPhase {
-    constructor(grid, deckContainer, handDeckMovement, prepareDeckMovement, collisionDetector)
+    constructor(grid, deckContainer, mouseInput)
     {
         this.grid = grid;
-        //this.cardStates = cardStates;
-        //this.cardMovement = cardMovement;
-        this.handDeckMovement = handDeckMovement;
-        //this.handDeckState = handDeckState;
-        this.prepareDeckMovememt = prepareDeckMovement;
+        this.handDeckMovement = [];
+        this.prepareDeckMovememt = [];
         this.deckContainer = deckContainer;
-
-
-        
         this.state = 0;
-        // this.movementDecorators = movementDecorators;
-        // this.stateDecorators = stateDecorators;
-        this.collisionDetector = collisionDetector;
-        //this.selectedCardMovement = null;
+        this.mouseInput = mouseInput;
         
     }
 
 
-    static create(grid, cardState, deckContainer, collisionDetector)
+    static create(grid, deckContainer, mouseInput)
+    {      
+        return new PrepareEventPhase(grid, deckContainer, mouseInput);
+    }
+
+
+    createDecorators(deckContainer)
     {
-
-        const handDeckMovement = [];
-        //const handDeckState = [];
-        const prepareDeckMovement = [];
-
-        const movementDecorators = cardState.movementDecorators;
-        //const stateDecorators = cardState.stateDecorators;
-
-        for (let i = 0; i < movementDecorators.length; ++i)
+        const handDecorators = [];
+        const prepareDecorators = [];
+        
+        for (let i = 0; i < deckContainer.length; ++i)
         {
-            const cardState = movementDecorators[i];
-            if (stateDecorators[i].deckID === Decks.HAND)
+            //Para cada deck creamos los 2 decorators
+            const deck = deckContainer[i];
+            for (let i = 0; i < deck.length; ++i)
             {
-                handDeckMovement.push(cardState);
-            }
-            else if (stateDecorators[i].deckID === Decks.PREPARE)
-            {
-                prepareDeckMovement.push(cardState);
+                const card = deck[i];
+               
+                const decorator = new CardMovementDecorator(card, deck);
+                if (deck.deckID === Decks.HAND)
+                {                  
+                    handDecorators.push(decorator);       
+                }
+                else if (deck.deckID === Decks.PREPARE)
+                {         
+                    prepareDecorators.push(decorator);
+                }
             }
         }
 
-        // for (let i = 0; i < movementDecorators.length; ++i)
-        // {
-        //     const cardState = stateDecorators[i];
-        //     if (stateDecorators[i].deckID === Decks.HAND)
-        //     {
-        //         handDeckMovement.push(cardState);
-        //     }
-            
-        // }
-
-        return new PrepareEventPhase(grid, deckContainer, handDeckMovement, prepareDeckMovement, collisionDetector);
+        this.handDeckMovement = handDecorators;
+        this.prepareDeckMovememt = prepareDecorators;
+        
     }
+
 
     execute()
     {
         let phaseEnded = false;
-        this.resetStates(); //Ponemos los estados de cartas a NO_SELECTED
-        this.readAndUpdateSelectedCard(); //Leemos si hay una carta seleccionada y actualizamos el estado.
+        this.createDecorators();
+        this.resetCardStates(); //Ponemos los estados de cartas a NO_SELECTED
+        
+        //Inputs de ratón y colisiones con cartas y grids
+        this.mouseInput.calculateCollisionBetweenMouseAndDeck(handDeckMovement);
+        this.mouseInput.calculateCollisionBetweenMouseAndGrid(handDeckMovement, grid);
+
+
+        //State machine de acciones
         this.updatePlayerActions();
-        //calculateCollisionsBetweenMouseAndCards();
-        //calculateCollisionsBetweenMouseAndGrids();
+
         this.updateDecks();
         phaseEnded = this.checkIfPhaseEnded();
         return phaseEnded;
@@ -92,21 +90,7 @@ module.exports = class PrepareEventPhase {
         
     }
 
-    readAndUpdateSelectedCard()
-    {
-        const state = false;
-        for (let i = 0; i < this.handDeckMovement.length; ++i)
-        {
-            const cardState = this.handDeckMovement[i];
-            if (cardState.isSelected())
-            {
-                this.selectedCardMovement = cardState;
-            }
 
-        }
-
-        return state;
-    }
 
 
 
@@ -128,86 +112,197 @@ module.exports = class PrepareEventPhase {
 
 
 
-    anyCardSelectedOnHand()
+    anyCardMouseInputOnHand()
     {
-        let cardState;
+        let cardState = 0; //Not over.
+        let card;
         for (let i = 0; i < this.handDeckMovement.length; ++i)
         {
             cardState = this.handDeckMovement[i];
-            if (cardState.isSelected())
+            if (cardState.isOnTop)
             {
-                break;
+                if (cardState.isClicked)
+                {
+                    cardState = 2; //Selected
+                }
+                else
+                {
+                    cardState = 1; //Hover
+                }
+                
             }
 
         }
 
-        return cardState;
+        return {card, cardState}
     }
 
-    // getCardStateSelectedOnHand()
-    // {
-    //     const returnState = null;
-    //     for (let i = 0; i < this.handDeckState.length; ++i)
-    //     {
-    //         const cardState = this.handDeckState[i];
-    //         if (cardState.isSelected())
-    //         {
-    //             returnState = cardState;
-    //             break;
-    //         }
+    anyCardCollidedWith()
+    {
+        let cardState = 0; //Not over.
+        let card;
+        for (let i = 0; i < this.handDeckMovement.length; ++i)
+        {
+            cardState = this.handDeckMovement[i];
+            if (cardState.isOnTop)
+            {
+                if (cardState.isClicked)
+                {
+                    cardState = 2; //Selected
+                }
+                else
+                {
+                    cardState = 1; //Hover
+                }
+                
+            }
 
-    //     }
+        }
 
-    //     return returnState;
-    // }
+        return {card, cardState}
+    }
+
+
+    anyGridMouseInputOnTarget()
+    {
+        let boxState = 0; //Not over.
+        let box;
+        for (let i = 0; i < this.grid.length; ++i)
+        {
+            boxState = this.grid[i];
+            if (boxState.isOnTop)
+            {
+                if (boxState.isClicked)
+                {
+                    boxState = 2; //Selected
+                }
+                else
+                {
+                    boxState = 1; //Hover
+                }
+                
+            }
+
+        }
+
+        return {box, boxState}
+    }
+
+
+    anyGridSelectedOnTarget()
+    {
+        let box = null;
+        for (let i = 0; i < this.grid.length; ++i)
+        {
+            const box = this.grid[i];
+            if (box.isSelected())
+            {
+                break;
+            }
+        }
+
+        return box;
+    }
+
+    anyCardSelectedOnHand()
+    {
+        let card = null;
+        for (let i = 0; i < this.handDeckMovement.length; ++i)
+        {
+            card = this.handDeckMovement[i];
+            
+            if (card.isSelected())
+            {
+                break;
+            }
+        }
+
+        return card;
+    }
+
+    calculateCollisionBetweenCardAndBox(card, box)
+    {
+        if (card.x === grid.x)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 
     updatePlayerActions()
     {
+        let card;
+        let cardState;
         switch (state)
         {
             case Actions.NO_CARD_SELECTED:
-
-
-                if (this.anyCardSelectedOnHand() !== null)
+                let result = this.anyCardMouseInputOnHand();
+                card = result.card;
+                cardState = result.cardState;
+                
+                if (cardState === 1) //Mouse HOVER
                 {
-                    this.state = Actions.SELECTED_CARD;
+                    card.hover();
                 }
+                else if (cardState === 2) //Mouse selected
+                {
+                    card.selected();
+                    card = Actions.SELECTED_CARD;
+                }
+                else //Mouse not hover
+                {
+                    card.unselect();
+                }
+
                 break;
 
             case Actions.SELECTED_CARD:
-                const selectedBox = this.grid.anyBoxSelected();
-                const selectedCard = this.anyCardSelectedOnHand();
-               
-                if (selectedBox !== null)
+                result = this.anyCardMouseInputOnHand();
+                card = result.card;
+                cardState = result.cardState;
+                if (cardState === 2)  //Si la volvemos a seleccionar
                 {
-                    this.state = Actions.MOVE_CARD;
-                    selectedCard.deactivate(); //Desactivamos la carta para poder seleccionarla
+                    card.unselect();
+                    card = Actions.NO_CARD_SELECTED;
+                }
 
+                result = this.anyGridMouseInputOnTarget();
+                box = result.box;
+                boxState = result.boxState;
+                if (boxState === 2)
+                {
+                    box.select();
+                    this.state = Actions.MOVE_CARD;
                     
                 }
-                else if (selectedCard === null) //No se ha seleccionado ninguna 
-                {
-                    this.state = Actions.NO_CARD_SELECTED;
-                }
+
                 break;
 
             case Actions.MOVE_CARD:
-                const selectedBox = this.grid.anyBoxSelected();
-                const placedCard = this.anyCardPlacedOnTargetBox(selectedBox);
-                if (placedCard === null) //Si no hay colision de la carta con el grid destino
+                //Extramos el box seleccionado y la card seleccionada
+                box = this.anyGridSelectedOnTarget();
+                card = this.anyCardSelectedOnHand();
+
+                //box y card van a ser !== null seguro
+                const isCollision = this.cardCollidedWithBox(card, box);
+                if (!isCollision) //Si no hay colision de la carta con el grid destino
                 {
-                    this.cardMovement.move();
+                    this.card.move();
+                    this.card.unselect(); //Opcional
                 }
                 else
-                {               
-                    this.cardMovement.setBoxCoordinates(selectedBox)
+                {   
+                    //Hay colision. La carta ha llegado a su destino       
+                    this.card.place(box)
                     this.state = States.END;
+                    this.box.full();
                 }
                 break; 
             
             case Actions.END:
-                //this.cardStates.placed(); //Ponemos la carta en estado PLACED
-                this.grid.setBoxFull(selectedBox);
+                
                 break;
             
 
@@ -233,15 +328,6 @@ module.exports = class PrepareEventPhase {
 
         //Borramos la carta del deck Actual 
         this.deckContainer.removeCard(placedCard)
-
-
-        // let position = this.deckContainer.getPositionOfPlacedCardInDeck(ORIGIN);
-
-        // if (position !== -1)
-        // {
-        //     this.deckContainer.removeCardFromPositionInDeck(position, ORIGIN);
-        //     this.deckContainer.addCardToDeck(TARGET);
-        // }
 
     }
 

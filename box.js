@@ -7,6 +7,7 @@
       this.sizeY = sizeY;
       this.state = state;
       this.mouseState = 0;
+      this.collidedCard = null;
     }
 
     free()
