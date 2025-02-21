@@ -73,6 +73,10 @@ module.exports = class PrepareEventPhase {
     {
         let phaseEnded = false;
         
+        //Inputs de ratón y colisiones con cartas y grids
+        this.mouseInput.calculateCollisionBetweenMouseAndDeck(handDeckMovement);
+        this.mouseInput.calculateCollisionBetweenMouseAndGrid(handDeckMovement, grid);
+
         //State machine de acciones
         this.executeActions();
 
@@ -243,9 +247,7 @@ module.exports = class PrepareEventPhase {
                 this.createDecorators();
                 this.resetCardStates(); //Ponemos los estados de cartas a NO_SELECTED
 
-                //Inputs de ratón y colisiones con cartas y grids
-                this.mouseInput.calculateCollisionBetweenMouseAndDeck(handDeckMovement);
-                this.mouseInput.calculateCollisionBetweenMouseAndGrid(handDeckMovement, grid);
+                
                 break;
 
             case Actions.SELECT_HAND_CARD:
