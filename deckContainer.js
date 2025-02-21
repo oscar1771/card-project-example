@@ -38,7 +38,7 @@ module.exports = class DeckContainer {
 
     addCardToDeck(cardToAdd, idDeck)
     {
-        decks[isDeck].push(cardToAdd);
+        decks[idDeck].push(cardToAdd);
     }
 
     

@@ -6,19 +6,17 @@ const States = {
     SELECTED:       2,
     INACTIVE:       3,
     PLACED:         4
-    //MOVING:         3,
-    //PLACED:         4
 
 }
 
 
 
 module.exports = class CardMovementDecorator extends CardDecorator {
-    constructor(card, deckID)
+    constructor(card)
     {
         super(card);
         this.state = States.NOT_SELECTED;
-        this.deckID = deckID;
+        //this.deckID = deckID;
         this.v = 30;
 
         //Relativas al MOUSE

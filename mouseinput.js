@@ -1,20 +1,16 @@
 module.exports = class MouseInput {
-    constructor(grid, stateDecorators)
+    constructor()
     {
        
-        this.stateDecorators = stateDecorators;
+        //this.stateDecorators = stateDecorators;
         
-        this.grid = grid;
+        
         this.mouseX = 0;
         this.mouseY = 0;
         this.mouseClicked = false;
 
     }
 
-    static create(grid, cardState)
-    {
-        return new PrepareEventPhase(grid, cardState.stateDecorators);
-    }
 
     calculateCollisionBetweenMouseAndDeck(deck){
         

@@ -2,13 +2,15 @@
 
 
 class Card {
-    constructor(id, type, description)
+    constructor(id, type, name, description)
     {
         this.id = id;
         this.type = type;
-        this.description = this.description;
+        this.name = name;
+        this.description = description;
         this.x = 0;
         this.y = 0;
+        
         
     }
 

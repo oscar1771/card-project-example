@@ -4,8 +4,8 @@ const {CardMovementDecorator} = require('./cardMovementDecorator');
 //const {Grid} = require('./grid');
 
 const Actions = {
-    NO_CARD_SELECTED: 0,
-    SELECTED_CARD: 1,
+    INIT:   0,
+    SELECT_HAND_CARD: 1,
     SELECT_TARGET_GRID: 2,
     MOVE_CARD: 3,
     END: 4,
@@ -72,18 +72,10 @@ module.exports = class PrepareEventPhase {
     execute()
     {
         let phaseEnded = false;
-        this.createDecorators();
-        this.resetCardStates(); //Ponemos los estados de cartas a NO_SELECTED
         
-        //Inputs de ratón y colisiones con cartas y grids
-        this.mouseInput.calculateCollisionBetweenMouseAndDeck(handDeckMovement);
-        this.mouseInput.calculateCollisionBetweenMouseAndGrid(handDeckMovement, grid);
-
-
         //State machine de acciones
-        this.updatePlayerActions();
+        this.executeActions();
 
-        this.updateDecks();
         phaseEnded = this.checkIfPhaseEnded();
         return phaseEnded;
         
@@ -220,6 +212,16 @@ module.exports = class PrepareEventPhase {
         return card;
     }
 
+    deletePreviousHoverStates()
+    {
+        for (let i = 0; i < this.handDeckMovement.length; ++i)
+        {
+            const card = this.handDeckMovement[i];
+            
+            card.unselect();
+        }
+    }
+
     calculateCollisionBetweenCardAndBox(card, box)
     {
         if (card.x === grid.x)
@@ -231,16 +233,28 @@ module.exports = class PrepareEventPhase {
     }
 
 
-    updatePlayerActions()
+    executeActions()
     {
         let card;
         let cardState;
         switch (state)
         {
-            case Actions.NO_CARD_SELECTED:
+            case Actions.INIT:
+                this.createDecorators();
+                this.resetCardStates(); //Ponemos los estados de cartas a NO_SELECTED
+
+                //Inputs de ratón y colisiones con cartas y grids
+                this.mouseInput.calculateCollisionBetweenMouseAndDeck(handDeckMovement);
+                this.mouseInput.calculateCollisionBetweenMouseAndGrid(handDeckMovement, grid);
+                break;
+
+            case Actions.SELECT_HAND_CARD:
                 let result = this.anyCardMouseInputOnHand();
                 card = result.card;
                 cardState = result.cardState;
+
+                //Borramos cualquier estado hover que existiera
+                this.deletePreviousHoverStates();
                 
                 if (cardState === 1) //Mouse HOVER
                 {
@@ -258,7 +272,7 @@ module.exports = class PrepareEventPhase {
 
                 break;
 
-            case Actions.SELECTED_CARD:
+            case Actions.SELECT_TARGET_GRID:
                 result = this.anyCardMouseInputOnHand();
                 card = result.card;
                 cardState = result.cardState;
@@ -302,7 +316,7 @@ module.exports = class PrepareEventPhase {
                 break; 
             
             case Actions.END:
-                
+                this.updateDecks(); //Actualizamos mazos
                 break;
             
 
